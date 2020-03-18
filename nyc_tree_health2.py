@@ -101,15 +101,17 @@ def update_graph(boroughs, tree_type):
     Output('tree_health1', 'figure'),
     [Input("borough1", "value"), Input("specie1", "value")])
 def update_scatter(borough, specie):
-    treesh1 = trees[trees["boroname"] == borough]
-    treesh1 = treesh1[treesh1["spc_common"] == specie]
+    treesh = trees[trees["boroname"] == borough]
+    treesh = treesh[treesh["spc_common"] == specie]
     
     
 
     trees['steward'].fillna("NA", inplace=True)
     stwrd_name = trees['steward'].unique()
-
-    #treesh = treesh.groupby('steward')
+    trace = []
+    for stwrd in stwrd_name:
+        treesh = treesh[treesh['steward']== stwrd]
+        trace.append(go.Histogram(x=treesh['health'], opacity=0.7, marker={"line": {"color": "#25232C", "width": 0.2}}))
     
     '''trace.append(go.Scatter(x.append(dff.count()), y.append(dff["health"].count()), mode="markers",
                                 name=stwrd.title(),
@@ -119,7 +121,7 @@ def update_scatter(borough, specie):
                        xaxis={"title": "Steward", "range": [-2, 75], "tick0": 0, "dtick": 5, "showgrid": False, },
                        yaxis={"title": "Tree health", "range": [-15, 300], "tick0": 0, "dtick": 25,
                         "showgrid": False, }, )'''
-    trace = go.Histogram(x=treesh1["health"], opacity=0.7, marker={"line": {"color": "#25232C", "width": 0.2}})
+    
 
     layout = go.Layout(title=f"Trees Health Distribution", xaxis={"title": "Health Quality", "showgrid": False},
                        yaxis={"title": "Count", "showgrid": False} )
