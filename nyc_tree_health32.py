@@ -65,8 +65,7 @@ app.layout = html.Div([
     [Output('tree_health', 'figure'),
     Output('tree_health1', 'figure')],
     [Input('borough', 'value'),
-    Input('specie','value')
-     ])
+    Input('specie','value')])
 def update_graph(boroughs, tree_type):
     treesh = trees[trees["boroname"] == boroughs]
     treesh = treesh[treesh["spc_common"] == tree_type]
@@ -76,28 +75,28 @@ def update_graph(boroughs, tree_type):
                        yaxis={"title": "Count", "showgrid": False} )
     figure = {"data": [trace], "layout": layout}
 
-    return figure
     
-def update_scatter(boroughs, tree_type):
-    treesh = trees[trees["boroname"] == boroughs]
-    treesh = treesh[treesh["spc_common"] == tree_type]
-    
-    trace = []
+    x = []
+    y = []
 
     stwrd_name = trees['steward'].unique()
+    trees['steward'].fillna("NA", inplace=True)
     for stwrd in stwrd_name:
-        treesh = treesh[treesh["steward"] == stwrd]["health"]
-        trace.append(go.Scatter(x=treesh.count(), y=treesh[treesh == 'Good'].count(), mode="markers",
-                                name=stwrd.title(), customdata=treesh,
-                                marker={"size": 10}))
+        treesh = treesh[treesh['steward'] == stwrd]
+        #treesh = treesh.groupby('steward')
+        x.append(treesh.count())
+        y.append(treesh.groupby('health').count())
+    trace = go.Scatter(x=x, y=y, mode="markers",
+                                name=stwrd.title(),
+                                marker={"size": 10})
 
     layout = go.Layout(title=f"Tree Health  vs Steward", colorway=['#fa9fb5', '#c51b8a'], hovermode='closest',
                        xaxis={"title": "Steward", "range": [-2, 75], "tick0": 0, "dtick": 5, "showgrid": False, },
                        yaxis={"title": "Tree health", "range": [-15, 300], "tick0": 0, "dtick": 25,
                               "showgrid": False, }, )
-    figure1 = {"data": trace, "layout": layout}
+    figure1 = {"data": [trace], "layout": layout}
     
-    return figure1
+    return figure, figure1
 
 
 
