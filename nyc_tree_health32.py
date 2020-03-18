@@ -86,9 +86,9 @@ def update_scatter(boroughs, tree_type):
 
     stwrd_name = trees['steward'].unique()
     for stwrd in stwrd_name:
-        dff = dff[dff["steward"] == stwrd]["health"]
-        trace.append(go.Scatter(x=dff[dff == stwrd].count(), y=dff[dff == 'Good'].count(), mode="markers",
-                                name=stwrd.title(), customdata=dff,
+        treesh = treesh[treesh["steward"] == stwrd]["health"]
+        trace.append(go.Scatter(x=treesh.count(), y=treesh[treesh == 'Good'].count(), mode="markers",
+                                name=stwrd.title(), customdata=treesh,
                                 marker={"size": 10}))
 
     layout = go.Layout(title=f"Tree Health  vs Steward", colorway=['#fa9fb5', '#c51b8a'], hovermode='closest',
