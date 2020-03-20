@@ -111,20 +111,23 @@ def update_scatter(borough, specie):
     trace = []
     for stwrd in stwrd_name:
         treesh = treesh[treesh['steward']== stwrd]
-        trace.append(go.Histogram(x=treesh['health'], opacity=0.7, marker={"line": {"color": "#25232C", "width": 0.2}}))
-    
-    '''trace.append(go.Scatter(x.append(dff.count()), y.append(dff["health"].count()), mode="markers",
-                                name=stwrd.title(),
+        x = treesh
+        y = treesh["health"]
+
+        #trace.append(go.Histogram(x=treesh['health'], opacity=0.7, marker={"line": {"color": "#25232C", "width": 0.2}}))
+        
+    trace.append(go.Scatter(x=x, y=y, mode="markers",
+                                name=stwrd.title(),customdata=treesh['steward'],
                                 marker={"size": 10}))
                         
-    layout = go.Layout(title=f"Tree Health  vs Steward", colorway=['#fa9fb5', '#c51b8a'], hovermode='closest',
-                       xaxis={"title": "Steward", "range": [-2, 75], "tick0": 0, "dtick": 5, "showgrid": False, },
-                       yaxis={"title": "Tree health", "range": [-15, 300], "tick0": 0, "dtick": 25,
-                        "showgrid": False, }, )'''
+    layout = go.Layout(title=f"Tree Health  vs Steward", colorway=['#fa9fb5', '#c51b8a'],
+                       xaxis={"title": "Steward", "tick0": 0, "dtick": 5, "showgrid": False, },
+                       yaxis={"title": "Tree health", "tick0": 0, "dtick": 25,
+                        "showgrid": False, }, )
     
 
-    layout = go.Layout(title=f"Trees Health Distribution", xaxis={"title": "Health Quality", "showgrid": False},
-                       yaxis={"title": "Count", "showgrid": False} )
+    # layout = go.Layout(title=f"Trees Health Distribution", xaxis={"title": "Health Quality", "showgrid": False},
+    #                    yaxis={"title": "Count", "showgrid": False} )
 
 
     figure1 = {"data": trace, "layout": layout}
