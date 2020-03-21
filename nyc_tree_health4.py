@@ -6,26 +6,25 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
 
-
+boro = []
 url = 'https://data.cityofnewyork.us/resource/nwxe-4ae8.json'
 trees = pd.read_json(url)
-trees.head(10)
 
-boro = 'Bronx'
+boro.append('Bronx')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
         '$select=spc_common,health,count(tree_id)' +\
         '&$where=boroname=\'Bronx\''+\
         '&$group=spc_common,health').replace(' ', '%20')
 Bronx_trees = pd.read_json(soql_url)
 
-boro = 'Manhattan'
+boro.append('Manhattan')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
         '$select=spc_common,health,count(tree_id)' +\
         '&$where=boroname=\'Manhattan\''+\
         '&$group=spc_common,health').replace(' ', '%20')
 Manhattan_trees = pd.read_json(soql_url)
 
-boro = 'Brooklyn'
+boro.append('Brooklyn')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
         '$select=spc_common,health,count(tree_id)' +\
         '&$where=boroname=\'Brooklyn\''+\
@@ -33,24 +32,20 @@ soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
 Brooklyn_trees = pd.read_json(soql_url)
 
 
-boro = 'Queens'
+boro.append('Queens')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
         '$select=spc_common,health,count(tree_id)' +\
         '&$where=boroname=\'Queens\''+\
         '&$group=spc_common,health').replace(' ', '%20')
 Queens_trees = pd.read_json(soql_url)
 
-boro = 'Staten Island'
+boro.append('Staten Island')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
         '$select=spc_common,health,count(tree_id)' +\
         '&$where=boroname=\'Staten Island\''+\
         '&$group=spc_common,health').replace(' ', '%20')
 StatenIsland_trees = pd.read_json(soql_url)
 
-soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,boroname,health,count(tree_id)' +\
-        '&$group=spc_common,boroname,health').replace(' ', '%20')
-treeb = pd.read_json(soql_url)
 
 
 trees_health = {'Bronx':Bronx_trees, 'Manhattan':Manhattan_trees, 'Brooklyn':Brooklyn_trees, 'Queens':Queens_trees, 'Staten Island':StatenIsland_trees}
@@ -59,7 +54,9 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
-nyc_borough = trees['boroname'].unique()
+trees['health'].fillna("NA", inplace=True)
+qualities = trees['health'].unique()
+
 trees['spc_common'].fillna("NA", inplace=True)
 species = trees['spc_common'].unique()
 
@@ -68,49 +65,82 @@ app.layout = html.Div([
     	html.Div([html.H1("Health of New York City Trees ")], style={'textAlign': "center", 'padding': 10}),
 
         html.Div([
-        	
-            dcc.Dropdown(
-                id='specie',
-                options=[{'label': i, 'value': i} for i in species],
-                value='red maple'
-            ),  
-        ],style={'width': '24%', 'display': 'inline-block'}),
-
-        html.Div([
-            dcc.RadioItems(
+        	dcc.Dropdown(
                 id='borough',
-                options=[{'label': i, 'value': i} for i in nyc_borough],
-                value='Bronx',
-                labelStyle={'display': 'inline-block'}
-            ),
-        ],style={'width': '24%', 'display': 'inline-block'}),
+                options=[{'label': i, 'value': i} for i in boro],
+                value='Bronx'
+                ),
 
+            dcc.RadioItems(
+                id='health_quality',
+                options=[{'label': i, 'value': i} for i in qualities],
+                value='Good',
+                labelStyle={'display': 'inline-block'}
+                ),
+
+            dcc.RadioItems(
+                id='yaxis-type',
+                options=[{'label': i, 'value': i} for i in ['Linear', 'Log']],
+                value='Linear',
+                labelStyle={'display': 'inline-block'}
+                )
 
             
-    ]),
+            ],style={'width': '24%', 'display': 'inline-block'}),
 
     dcc.Graph(id='tree_health'),
-
+ 	])
 ])
 
 @app.callback(
     Output('tree_health', 'figure'),
     [Input('borough', 'value'),
-    Input('specie','value')
-     ])
-def update_graph(boroughs, tree_type):
-	treesh = treeb[treeb["boroname"] == boroughs]
-	treesh = treesh[treesh["spc_common"] == tree_type]
-	trace = go.histogram(x=treesh['count_tree_id'], opacity=0.7, marker={"line": {"color": "#25232C", "width": 0.2}})
-	layout = go.Layout(title=f"Trees Health Distribution", xaxis={"title": "Health Quality", "showgrid": False},
-                       yaxis={"title": "Count", "showgrid": False} )
-	figure = {"data": [trace], "layout": layout}
+    Input('health_quality', 'value'),
+    Input('yaxis-type', 'value')])
+def update_graph(boroughs, quality, yaxis_type):
+	treesh = trees_health[boroughs]
+	
+	traces = []
+	for i in qualities:
+		treesh = treesh[treesh['health']==quality]
+		trees_by_health = treesh[treesh['health'] == i]
+		traces.append(dict(
+    		x = trees_by_health.index,
+    		y = trees_by_health['count_tree_id'],
+            mode='markers',
+            opacity=0.7,
+            marker={
+                'size': 15,
+                'line': {'width': 0.5, 'color': 'white'}
+            },
+            name=i
+            ))
+
+
+	'''trace = dict(x=treesh.index, 
+						y=treesh['count_tree_id'], mode='markers',
+			            marker={
+			                'size': 15,
+			                'opacity': 0.5,
+			                'line': {'width': 0.5, 'color': 'white'}})'''
+	layout = dict(
+            xaxis={
+                'title': species,
+                'type': 'linear' 
+            },
+            yaxis={
+                'title': 'Count',
+                'type': 'linear' if yaxis_type == 'Linear' else 'log'
+            },
+            margin={'l': 40, 'b': 40, 't': 10, 'r': 0},
+            hovermode='closest',
+            transition = {'duration': 500},)
+	figure = {"data": traces, "layout": layout}
 	return figure
 
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
 
 
 
