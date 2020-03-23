@@ -117,7 +117,7 @@ def update_graph(boroughs, tree_type, quality,yaxis_type):
     treesh = trees[trees["boroname"] == boroughs]
     treesh = treesh[treesh["spc_common"] == tree_type]
     
-     treesh = trees_health[boroughs]
+    treesh = trees_health[boroughs]
     
     traces = []
     for i in qualities:
