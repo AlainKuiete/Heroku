@@ -12,38 +12,38 @@ trees = pd.read_json(url)
 
 boro.append('Bronx')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,health,count(tree_id)' +\
+        '$select=spc_common,spc_latin,health,count(tree_id)' +\
         '&$where=boroname=\'Bronx\''+\
-        '&$group=spc_common,health').replace(' ', '%20')
+        '&$group=spc_common,spc_latin,health').replace(' ', '%20')
 Bronx_trees = pd.read_json(soql_url)
 
 boro.append('Manhattan')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,health,count(tree_id)' +\
+        '$select=spc_common,spc_latin,health,count(tree_id)' +\
         '&$where=boroname=\'Manhattan\''+\
-        '&$group=spc_common,health').replace(' ', '%20')
+        '&$group=spc_common,spc_latin,health').replace(' ', '%20')
 Manhattan_trees = pd.read_json(soql_url)
 
 boro.append('Brooklyn')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,health,count(tree_id)' +\
+        '$select=spc_common,spc_latin,health,count(tree_id)' +\
         '&$where=boroname=\'Brooklyn\''+\
-        '&$group=spc_common,health').replace(' ', '%20')
+        '&$group=spc_common,spc_common,spc_latin,health').replace(' ', '%20')
 Brooklyn_trees = pd.read_json(soql_url)
 
 
 boro.append('Queens')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,health,count(tree_id)' +\
+        '$select=spc_common,spc_latin,health,count(tree_id)' +\
         '&$where=boroname=\'Queens\''+\
-        '&$group=spc_common,health').replace(' ', '%20')
+        '&$group=spc_common,spc_latin,health').replace(' ', '%20')
 Queens_trees = pd.read_json(soql_url)
 
 boro.append('Staten Island')
 soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,health,count(tree_id)' +\
+        '$select=spc_common,spc_latin,health,count(tree_id)' +\
         '&$where=boroname=\'Staten Island\''+\
-        '&$group=spc_common,health').replace(' ', '%20')
+        '&$group=spc_common,spc_latin,health').replace(' ', '%20')
 StatenIsland_trees = pd.read_json(soql_url)
 
 
@@ -63,13 +63,18 @@ species = trees['spc_common'].unique()
 app.layout = html.Div([
     html.Div([
     	html.Div([html.H1("Health of New York City Trees ")], style={'textAlign': "center", 'padding': 10}),
-
+    	html.Div([html.H3("Proportion of Trees That are Good, Fair, or Poor ")], style={'textAlign': "center", 'padding': 10}),
         html.Div([
         	dcc.Dropdown(
                 id='borough',
                 options=[{'label': i, 'value': i} for i in boro],
                 value='Bronx'
                 ),
+        	dcc.Dropdown(
+                id='specie',
+                options=[{'label': i, 'value': i} for i in species],
+                value='red maple'
+            ), 
 
             dcc.RadioItems(
                 id='health_quality',
@@ -95,13 +100,16 @@ app.layout = html.Div([
 @app.callback(
     Output('tree_health', 'figure'),
     [Input('borough', 'value'),
+    Input('specie', 'value'),
     Input('health_quality', 'value'),
     Input('yaxis-type', 'value')])
-def update_graph(boroughs, quality, yaxis_type):
+def update_graph(boroughs, specie, quality, yaxis_type):
 	treesh = trees_health[boroughs]
+
 	
 	traces = []
 	for i in qualities:
+		treesh = treesh[treesh['spc_common']==specie]
 		treesh = treesh[treesh['health']==quality]
 		trees_by_health = treesh[treesh['health'] == i]
 		traces.append(dict(

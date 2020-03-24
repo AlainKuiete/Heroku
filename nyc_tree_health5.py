@@ -63,6 +63,7 @@ qualities = trees['health'].unique()
 app.layout = html.Div([
     html.Div([
     	html.Div([html.H1("Health of New York City Trees ")], style={'textAlign': "center", 'padding': 10}),
+        html.Div([html.H3("Influence of Steward on Health")], style={'textAlign': "center", 'padding': 10}),
 
         html.Div([
         	
@@ -121,8 +122,8 @@ def update_graph(boroughs, tree_type, quality,yaxis_type):
     
     traces = []
     for i in qualities:
-        treesh = treesh[treesh['health']==quality]
-        trees_by_health = treesh[treesh['health'] == i]
+        trees_by_health = treesh[treesh['health']==quality]
+        trees_by_health = trees_by_health[trees_by_health['health'] == i]
         traces.append(dict(
             x = trees_by_health.index,
             y = trees_by_health['count_tree_id'],
