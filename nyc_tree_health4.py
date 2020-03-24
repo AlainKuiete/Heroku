@@ -76,12 +76,12 @@ app.layout = html.Div([
                 value='red maple'
             ), 
 
-            dcc.RadioItems(
-                id='health_quality',
-                options=[{'label': i, 'value': i} for i in qualities],
-                value='Good',
-                labelStyle={'display': 'inline-block'}
-                ),
+            # dcc.RadioItems(
+            #     id='health_quality',
+            #     options=[{'label': i, 'value': i} for i in qualities],
+            #     value='Good',
+            #     labelStyle={'display': 'inline-block'}
+            #     ),
 
             dcc.RadioItems(
                 id='yaxis-type',
@@ -101,16 +101,16 @@ app.layout = html.Div([
     Output('tree_health', 'figure'),
     [Input('borough', 'value'),
     Input('specie', 'value'),
-    Input('health_quality', 'value'),
+    # Input('health_quality', 'value'),
     Input('yaxis-type', 'value')])
-def update_graph(boroughs, specie, quality, yaxis_type):
+def update_graph(boroughs, specie, yaxis_type):
 	treesh = trees_health[boroughs]
 
 	
 	traces = []
 	for i in qualities:
 		treesh = treesh[treesh['spc_common']==specie]
-		treesh = treesh[treesh['health']==quality]
+		# treesh = treesh[treesh['health']==quality]
 		trees_by_health = treesh[treesh['health'] == i]
 		traces.append(dict(
     		x = trees_by_health.index,
