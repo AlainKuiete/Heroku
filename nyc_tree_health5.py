@@ -6,53 +6,13 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 
-boro = []
-url = 'https://data.cityofnewyork.us/resource/nwxe-4ae8.json'
-trees = pd.read_json(url)
-
-boro.append('Bronx')
-soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,steward,health,count(tree_id)' +\
-        '&$where=boroname=\'Bronx\''+\
-        '&$group=spc_common,steward,health').replace(' ', '%20')
-Bronx_trees = pd.read_json(soql_url)
-
-boro.append('Manhattan')
-soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,steward,health,count(tree_id)' +\
-        '&$where=boroname=\'Manhattan\''+\
-        '&$group=spc_common,steward,health').replace(' ', '%20')
-Manhattan_trees = pd.read_json(soql_url)
-
-boro.append('Brooklyn')
-soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,steward,health,count(tree_id)' +\
-        '&$where=boroname=\'Brooklyn\''+\
-        '&$group=spc_common,steward,health').replace(' ', '%20')
-Brooklyn_trees = pd.read_json(soql_url)
-
-
-boro.append('Queens')
-soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,steward,health,count(tree_id)' +\
-        '&$where=boroname=\'Queens\''+\
-        '&$group=spc_common,steward,health').replace(' ', '%20')
-Queens_trees = pd.read_json(soql_url)
-
-boro.append('Staten Island')
-soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
-        '$select=spc_common,steward,health,count(tree_id)' +\
-        '&$where=boroname=\'Staten Island\''+\
-        '&$group=spc_common,steward,health').replace(' ', '%20')
-StatenIsland_trees = pd.read_json(soql_url)
-
-
-
-trees_health = {'Bronx':Bronx_trees, 'Manhattan':Manhattan_trees, 'Brooklyn':Brooklyn_trees, 'Queens':Queens_trees, 'Staten Island':StatenIsland_trees}
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+url = 'https://data.cityofnewyork.us/resource/nwxe-4ae8.json'
+trees = pd.read_json(url)
 
 nyc_borough = trees['boroname'].unique()
 trees['spc_common'].fillna("NA", inplace=True)
@@ -60,8 +20,11 @@ species = trees['spc_common'].unique()
 trees['health'].fillna("NA", inplace=True)
 qualities = trees['health'].unique()
 
+
+
 app.layout = html.Div([
     html.Div([
+
     	html.Div([html.H1("Health of New York City Trees ")], style={'textAlign': "center", 'padding': 10}),
         html.Div([html.H3("Influence of Steward on Health")], style={'textAlign': "center", 'padding': 10}),
 
@@ -106,6 +69,12 @@ app.layout = html.Div([
 
 ])
 
+def treeh(boro):
+    soql_url = ('https://data.cityofnewyork.us/resource/nwxe-4ae8.json?' +\
+            '$select=spc_common,steward,health,count(tree_id)' +\
+            '&$where=&boroname=\'{}\''+\
+            '&$group=spc_common,steward,health').format(boro).replace(' ', '%20')
+    return pd.read_json(soql_url)
 
 @app.callback(
     Output('tree_health', 'figure'),
@@ -115,10 +84,9 @@ app.layout = html.Div([
     Input('yaxis-type','value'),
      ])
 def update_graph(boroughs, tree_type, yaxis_type):
-    treesh = trees[trees["boroname"] == boroughs]
+    treesh = treeh(boroughs)
     treesh = treesh[treesh["spc_common"] == tree_type]
     
-    treesh = trees_health[boroughs]
     
     traces = []
     for i in qualities:
