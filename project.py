@@ -15,7 +15,7 @@ url = 'https://raw.githubusercontent.com/AlainKuiete/DATA608ASSINGMENTS/master/G
 mobility = pd.read_csv(url)
 
 cr_code = mobility['country_region_code'].unique()
-country_region = mobility['country_region'].dropna()
+country_region = mobility['country_region'].dropna().unique()
 mobility['sub_region_1'].fillna("NA", inplace=True)
 sub_region1 = mobility['sub_region_1'].unique()
 mobility['sub_region_2'].fillna("NA", inplace=True)
@@ -153,7 +153,7 @@ def update_graph(country):
         cmobility = cmobility[cmobility['country_region'] == i]
         traces.append(dict(
             x = cmobility['date'],
-            y = trees_by_health['count_tree_id'],
+            y = cmobility[places['Recreation']],
             mode='line',
             opacity=0.7,
             marker={
@@ -170,7 +170,7 @@ def update_graph(country):
                 'type': 'linear' 
             },
             yaxis={
-                'title': 'Count',
+                'title': 'Percet change from baseline',
                 'type': 'linear',
             },
             margin={'l': 40, 'b': 40, 't': 10, 'r': 0},
@@ -179,6 +179,49 @@ def update_graph(country):
     figure = {"data": traces, "layout": layout}
     return figure
 
+
+@app.callback(
+    Output('grocery-graph', 'figure'),
+    [Input('CountryRegion', 'value'),
+    Input('SubRegion1', 'value'),
+    Input('SubRegion2', 'value'),
+    Input('Places', 'value'),
+    ])
+def update_graph(country):
+    cmobility= mobility[mobility["Places"] == places['Grocery']]
+    
+    
+    traces = []
+    for i in country:
+        #
+        cmobility = cmobility[cmobility['country_region'] == i]
+        traces.append(dict(
+            x = cmobility['date'],
+            y = cmobility[plces['grocery']],
+            mode='line',
+            opacity=0.7,
+            marker={
+                'size': 15,
+                'line': {'width': 0.5, 'color': 'white'}
+            },
+            name=i
+            ))
+
+    layout = dict(
+        title = ['Grocery & Pharmacy'],
+            xaxis={
+                'title': 'Date',
+                'type': 'linear' 
+            },
+            yaxis={
+                'title': 'percent change from baseline',
+                'type': 'linear',
+            },
+            margin={'l': 40, 'b': 40, 't': 10, 'r': 0},
+            hovermode='closest',
+            transition = {'duration': 500},)
+    figure = {"data": traces, "layout": layout}
+    return figure
 
 if __name__ == '__main__':
     app.run_server(debug=True)
