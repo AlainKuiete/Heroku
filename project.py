@@ -130,11 +130,6 @@ visits to places like grocery stores and parks within a geographic area.
         )
     ], className='ten columns offset-by-one')
 )
-'''@app.callback(
-    Output('SubRegion1', 'options'),
-    [Input('CountryRegion', 'value')])
-def set_cities_options(selected_country):
-    return [{'label': i, 'value': i} for i in country_region[selected_country]]'''
 
 @app.callback(
     Output('retail-graph', 'figure'),
@@ -143,85 +138,39 @@ def set_cities_options(selected_country):
     Input('SubRegion2', 'value'),
     Input('Places', 'value'),
     ])
-def update_graph(country):
-    cmobility= mobility[mobility["Places"] == places['Recreation']]
-    
-    
-    traces = []
-    for i in country:
-        #
-        cmobility = cmobility[cmobility['country_region'] == i]
-        traces.append(dict(
-            x = cmobility['date'],
-            y = cmobility[places['Recreation']],
-            mode='line',
-            opacity=0.7,
-            marker={
-                'size': 15,
-                'line': {'width': 0.5, 'color': 'white'}
-            },
-            name=i
+def update_graph(country, sregion1, sregion2, place):
+    cmobility = mobility[mobility["country_region"] == country]
+    cmobility = cmobility[cmobility["sub_region_1"] == sregion1]
+    cmobility = cmobility[cmobility["sub_region_2"] == sregion2]
+
+    data = []
+
+    for key in places.keys():
+        data.append(dict(
+            x=cmobility[cmobility[places[key]]==place]['date'],
+            y=cmobility[cmobility[places[key]]==place][places[key]]))
+
+    figure = {
+        'data': data,
+        'layout': {
+            'title': 'Graph 1',
+            'xaxis' : dict(
+                title='x Axis',
+                titlefont=dict(
+                family='Courier New, monospace',
+                size=20,
+                color='#7f7f7f'
+            )),
+            'yaxis' : dict(
+                title='y Axis',
+                titlefont=dict(
+                family='Helvetica, monospace',
+                size=20,
+                color='#7f7f7f'
             ))
-
-    layout = dict(
-        title = ['Retail & Recreation'],
-            xaxis={
-                'title': 'Date',
-                'type': 'linear' 
-            },
-            yaxis={
-                'title': 'Percet change from baseline',
-                'type': 'linear',
-            },
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 0},
-            hovermode='closest',
-            transition = {'duration': 500},)
-    figure = {"data": traces, "layout": layout}
-    return figure
-
-
-@app.callback(
-    Output('grocery-graph', 'figure'),
-    [Input('CountryRegion', 'value'),
-    Input('SubRegion1', 'value'),
-    Input('SubRegion2', 'value'),
-    Input('Places', 'value'),
-    ])
-def update_graph(country):
-    cmobility= mobility[mobility["Places"] == places['Grocery']]
-    
-    
-    traces = []
-    for i in country:
-        #
-        cmobility = cmobility[cmobility['country_region'] == i]
-        traces.append(dict(
-            x = cmobility['date'],
-            y = cmobility[plces['grocery']],
-            mode='line',
-            opacity=0.7,
-            marker={
-                'size': 15,
-                'line': {'width': 0.5, 'color': 'white'}
-            },
-            name=i
-            ))
-
-    layout = dict(
-        title = ['Grocery & Pharmacy'],
-            xaxis={
-                'title': 'Date',
-                'type': 'linear' 
-            },
-            yaxis={
-                'title': 'percent change from baseline',
-                'type': 'linear',
-            },
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 0},
-            hovermode='closest',
-            transition = {'duration': 500},)
-    figure = {"data": traces, "layout": layout}
-    return figure
+        }
+    }
+    return figure    
 
 if __name__ == '__main__':
     app.run_server(debug=True)
