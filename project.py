@@ -5,6 +5,8 @@ import dash
 from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly
+import plotly.graph_objs as go
 
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -12,32 +14,35 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 url = 'https://raw.githubusercontent.com/AlainKuiete/DATA608ASSINGMENTS/master/Global_Mobility_Report.csv'
-mobility = pd.read_csv(url)
+mobility = pd.read_csv(url, low_memory=False)
+mobility.columns = ['code', 'country', 'region1', 'region2', 'date', 'recreation', 'grocery', 'parks', 'transit', 'workplaces', 'residentials' ]
 
-cr_code = mobility['country_region_code'].unique()
-country_region = mobility['country_region'].dropna().unique()
-mobility['sub_region_1'].fillna("NA", inplace=True)
-sub_region1 = mobility['sub_region_1'].unique()
-mobility['sub_region_2'].fillna("NA", inplace=True)
-sub_region2 = mobility['sub_region_2'].unique()
+code = mobility['code'].unique()
+country = mobility['country'].dropna().unique()
+mobility['region1'].fillna("NA", inplace=True)
+sub_region1 = mobility['region1'].unique()
+mobility['region2'].fillna("NA", inplace=True)
+sub_region2 = mobility['region2'].unique()
 
-places = {'Recreation': 'retail_and_recreation_percent_change_from_baseline',
-            'Grocery': 'grocery_and_pharmacy_percent_change_from_baseline',
-            'Parks': 'parks_percent_change_from_baseline',
-            'Transit': 'transit_stations_percent_change_from_baseline',
-            'Workplaces': 'workplaces_percent_change_from_baseline',
-            'Residentials': 'residential_percent_change_from_baseline'
-            }
+places = ['recreation', 'grocery', 'parks', 'transit', 'workplaces', 'residentials']
+
+local_text = {'recreation': ' ## Mobility trends for places like restaurants, cafes, shopping centers, theme parks, museums, libraries, and movie theaters.',
+ 'grocery': '## Mobility trends for places like grocery markets, food warehouses, farmers markets, specialty food shops, drug stores, and pharmacies.',
+  'parks': '## Mobility trends for places like national parks, public beaches, marinas, dog parks, plazas, and public gardens.',
+   'transit': '## Mobility trends for places like public transport hubs such as subway, bus, and train stations.',
+    'workplaces': '## Mobility trends for places of work.',
+     'residentials': '## Mobility trends for places of residence.'}
+
 
 # Boostrap CSS.
 app.layout = html.Div(
     html.Div([
         html.Div(
             [
-                html.H1(children='Community Mobility Report',
+                html.H1(children='Covid-19 Community Mobility Reports',
                         className='nine columns'),
                 html.Img(
-                    src="https://icons8.com/icon/CGf5JvobsqEu/coronavirus",
+                    src="https://img.icons8.com/bubbles/50/000000/coronavirus.png",
                     className='three columns',
                     style={
                         'height': '9%',
@@ -48,7 +53,7 @@ app.layout = html.Div(
                         'padding-right': 0
                     },
                 ),
-                html.Div(children='''
+                html.H3(children='''
                         Each Community Mobility Report dataset is presented by location and highlights the percent change in
 visits to places like grocery stores and parks within a geographic area.
 
@@ -62,11 +67,11 @@ visits to places like grocery stores and parks within a geographic area.
             [
                 html.Div(
                     [
-                        html.P('Choose Country:'),
+                        html.H4('Choose Country:'),
                         dcc.Dropdown(
                                 id = 'CountryRegion',
                                 options=[
-                                    {'label': i, 'value': i} for i in country_region],
+                                    {'label': i, 'value': i} for i in country],
                                 value='United States'
                         ),
                     ],style={'margin-top': '10', 'width': '24%', 'display': 'inline-block'}, className = "three columns",
@@ -74,7 +79,7 @@ visits to places like grocery stores and parks within a geographic area.
                 ),
                 html.Div(
                     [
-                        html.P('Choose Region:'),
+                        html.H4('Choose Region:'),
             
                         dcc.Dropdown(
                                 id='SubRegion1',
@@ -87,11 +92,11 @@ visits to places like grocery stores and parks within a geographic area.
 
                 html.Div(
                     [
-                        html.P('Choose Region:'),
+                        html.H4('Choose Region:'),
                         dcc.Dropdown(
                                 id = 'SubRegion2',
                                 options=[{'label': k, 'value': k} for k in sub_region2],
-                                value='New York',
+                                value='Bronx County',
                             ),
                     ],style={'width': '24%', 'display': 'inline-block'}, className = "three columns",
                 ),
@@ -99,17 +104,27 @@ visits to places like grocery stores and parks within a geographic area.
             ], className="row"
         ),
 
-
         html.Div([
-            html.P('Choose Paces:'),
-                        dcc.Checklist(
+            html.Div([
+                html.H4('Choose Location:'),
+                dcc.RadioItems(
                                 id = 'Places',
-                                options=[
-                                    {'label': l, 'value': places[l]} for l in places.keys()
-                                ],     
+                                options=[{'label': l, 'value': l} for l in places],
+                                value='recreation', 
                             ),
-            ], style={'margin-top': '10'}, className = 'row'
-        ),
+                ], style={'margin-top': '10', 'width': '24%', 'display': 'inline-block'}, className = "three columns",
+                ),
+            html.Div([
+                html.H4('Summary Statistics'),
+                dcc.Textarea(
+                            id='Stats',
+                            value = 'Mobility Report Statistics',
+                            style={'width': '50%',}
+                            ),
+                ], style={'width': '24%', 'display': 'inline-block'}, className = "five columns",
+                 )
+            ], style={'margin-top': '10'}, className = 'row',
+            ),
 
         html.Div(
             [
@@ -121,8 +136,9 @@ visits to places like grocery stores and parks within a geographic area.
                 ),
 
                 html.Div([
-                    dcc.Graph(
-                        id='grocery-graph'
+                    dcc.Markdown(
+                        id='Text',
+                        children = '''**This text will be bold**'''
                     )
                 ], className= 'six columns'
                 )
@@ -132,45 +148,76 @@ visits to places like grocery stores and parks within a geographic area.
 )
 
 @app.callback(
-    Output('retail-graph', 'figure'),
-    [Input('CountryRegion', 'value'),
+    Output('SubRegion1', 'options'),
+    [Input('CountryRegion', 'value')])
+def set_region1_options(selected_country):
+    mobility['region1'].fillna("NA", inplace=True)
+    return [{'label': i, 'value': i} for i in mobility[mobility["country"]==selected_country]['region1'].unique()]
+
+@app.callback(
+    Output('SubRegion1', 'value'),
+    [Input('SubRegion1', 'options')])
+def set_region1_value(available_options):
+    return available_options[0]['value']
+
+@app.callback(
+    Output('SubRegion2', 'options'),
+    [Input('SubRegion1', 'value')])
+def set_region2_options(selected_region):
+    mobility['region1'].fillna("NA", inplace=True)
+    return [{'label': i, 'value': i} for i in mobility[mobility["region1"]==selected_region]['region2'].unique()]
+
+# Region to choose
+
+
+
+@app.callback(
+    [Output('retail-graph', 'figure'),
+    Output('Stats', 'value')],
+    [Input('SubRegion2', 'value'),
     Input('SubRegion1', 'value'),
-    Input('SubRegion2', 'value'),
+    Input('CountryRegion', 'value'),
     Input('Places', 'value'),
     ])
-def update_graph(country, sregion1, sregion2, place):
-    cmobility = mobility[mobility["country_region"] == country]
-    cmobility = cmobility[cmobility["sub_region_1"] == sregion1]
-    cmobility = cmobility[cmobility["sub_region_2"] == sregion2]
 
-    data = []
 
-    for key in places.keys():
-        data.append(dict(
-            x=cmobility[cmobility[places[key]]==place]['date'],
-            y=cmobility[cmobility[places[key]]==place][places[key]]))
+def update_value(sregion2, sregion1, scountry, location):
+    url = 'https://raw.githubusercontent.com/AlainKuiete/DATA608ASSINGMENTS/master/Global_Mobility_Report.csv'
+    df = pd.read_csv(url)
 
-    figure = {
-        'data': data,
-        'layout': {
-            'title': 'Graph 1',
-            'xaxis' : dict(
-                title='x Axis',
-                titlefont=dict(
-                family='Courier New, monospace',
-                size=20,
-                color='#7f7f7f'
-            )),
-            'yaxis' : dict(
-                title='y Axis',
-                titlefont=dict(
-                family='Helvetica, monospace',
-                size=20,
-                color='#7f7f7f'
-            ))
-        }
-    }
-    return figure    
+    df.columns = ['code', 'country', 'region1', 'region2', 'date', 'recreation', 'grocery', 'parks', 'transit', 'workplaces', 'residentials' ]
+    df.reset_index(inplace=True)
+    df.set_index("date", inplace=True)
+    x = df.index
+    if sregion2 != 'NA':
+        y = df[df['region2']==sregion2][location]
+    elif sregion2 != 'NA' and sregion2 == 'NA':
+        y = df[df['region1']==sregion1][location]
+    else:
+        y = df[df['country']==scountry][location]
+
+    stat = '{}'.format(y.describe())
+
+    data = plotly.graph_objs.Scatter(
+            x=x,
+            y=y,
+            name=location,
+            mode= 'lines+markers',
+            fill="tozeroy",
+            fillcolor="#6897bb",
+            )
+    figure = {'data': [data],'layout' : go.Layout(title = '{}'.format(location), )}
+
+    #figure = {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(x),max(x)]),
+    #                                            yaxis=dict(range=[min(y),max(y)]),)}
+    return figure, stat
+
+@app.callback(
+    Output('Text', 'children'),
+    [Input('Places', 'value')])    
+def update_text(place):
+    return local_text[place]
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
