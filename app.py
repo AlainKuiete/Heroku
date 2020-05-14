@@ -13,6 +13,9 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+server = app.server
+app.title= mobilityReport
+
 url = 'https://raw.githubusercontent.com/AlainKuiete/DATA608ASSINGMENTS/master/Global_Mobility_Report.csv'
 mobility = pd.read_csv(url, low_memory=False)
 mobility.columns = ['code', 'country', 'region1', 'region2', 'date', 'recreation', 'grocery', 'parks', 'transit', 'workplaces', 'residentials' ]
@@ -26,12 +29,12 @@ sub_region2 = mobility['region2'].unique()
 
 places = ['recreation', 'grocery', 'parks', 'transit', 'workplaces', 'residentials']
 
-local_text = {'recreation': ' ## Mobility trends for places like restaurants, cafes, shopping centers, theme parks, museums, libraries, and movie theaters.',
- 'grocery': '## Mobility trends for places like grocery markets, food warehouses, farmers markets, specialty food shops, drug stores, and pharmacies.',
-  'parks': '## Mobility trends for places like national parks, public beaches, marinas, dog parks, plazas, and public gardens.',
-   'transit': '## Mobility trends for places like public transport hubs such as subway, bus, and train stations.',
-    'workplaces': '## Mobility trends for places of work.',
-     'residentials': '## Mobility trends for places of residence.'}
+local_text = {'recreation': 'Mobility trends for places like restaurants, cafes, shopping centers, theme parks, museums, libraries, and movie theaters.',
+ 'grocery': 'Mobility trends for places like grocery markets, food warehouses, farmers markets, specialty food shops, drug stores, and pharmacies.',
+  'parks': 'Mobility trends for places like national parks, public beaches, marinas, dog parks, plazas, and public gardens.',
+   'transit': 'Mobility trends for places like public transport hubs such as subway, bus, and train stations.',
+    'workplaces': 'Mobility trends for places of work.',
+     'residentials': 'Mobility trends for places of residence.'}
 
 
 # Boostrap CSS.
@@ -39,7 +42,7 @@ app.layout = html.Div(
     html.Div([
         html.Div(
             [
-                html.H1(children='Covid-19 Community Mobility Reports',
+                html.H2(children='Covid-19 Community Mobility Reports',
                         className='nine columns'),
                 html.Img(
                     src="https://img.icons8.com/bubbles/50/000000/coronavirus.png",
@@ -53,7 +56,7 @@ app.layout = html.Div(
                         'padding-right': 0
                     },
                 ),
-                html.H3(children='''
+                html.H4(children='''
                         Each Community Mobility Report dataset is presented by location and highlights the percent change in
 visits to places like grocery stores and parks within a geographic area.
 
@@ -67,7 +70,7 @@ visits to places like grocery stores and parks within a geographic area.
             [
                 html.Div(
                     [
-                        html.H4('Choose Country:'),
+                        html.H6('Choose Country:'),
                         dcc.Dropdown(
                                 id = 'CountryRegion',
                                 options=[
@@ -79,7 +82,7 @@ visits to places like grocery stores and parks within a geographic area.
                 ),
                 html.Div(
                     [
-                        html.H4('Choose Region:'),
+                        html.H6('Choose Region:'),
             
                         dcc.Dropdown(
                                 id='SubRegion1',
@@ -92,7 +95,7 @@ visits to places like grocery stores and parks within a geographic area.
 
                 html.Div(
                     [
-                        html.H4('Choose Region:'),
+                        html.H6('Choose Region:'),
                         dcc.Dropdown(
                                 id = 'SubRegion2',
                                 options=[{'label': k, 'value': k} for k in sub_region2],
@@ -106,7 +109,7 @@ visits to places like grocery stores and parks within a geographic area.
 
         html.Div([
             html.Div([
-                html.H4('Choose Location:'),
+                html.H6('Choose Location:'),
                 dcc.RadioItems(
                                 id = 'Places',
                                 options=[{'label': l, 'value': l} for l in places],
@@ -115,13 +118,13 @@ visits to places like grocery stores and parks within a geographic area.
                 ], style={'margin-top': '10', 'width': '24%', 'display': 'inline-block'}, className = "three columns",
                 ),
             html.Div([
-                html.H4('Summary Statistics'),
+                html.H6('Summary Statistics'),
                 dcc.Textarea(
                             id='Stats',
                             value = 'Mobility Report Statistics',
                             style={'width': '50%',}
                             ),
-                ], style={'width': '24%', 'display': 'inline-block'}, className = "five columns",
+                ], style={'width': '50%', 'display': 'inline-block'}, className = "four columns",
                  )
             ], style={'margin-top': '10'}, className = 'row',
             ),
@@ -132,7 +135,7 @@ visits to places like grocery stores and parks within a geographic area.
                     dcc.Graph(
                         id='retail-graph'
                     )
-                ], className= 'six columns'
+                ], className= 'ten columns'
                 ),
 
                 html.Div([
@@ -140,7 +143,7 @@ visits to places like grocery stores and parks within a geographic area.
                         id='Text',
                         children = '''**This text will be bold**'''
                     )
-                ], className= 'six columns'
+                ], className= 'two columns'
                 )
             ], className="row"
         )
@@ -206,7 +209,7 @@ def update_value(sregion2, sregion1, scountry, location):
             fill="tozeroy",
             fillcolor="#6897bb",
             )
-    figure = {'data': [data],'layout' : go.Layout(title = '{}'.format(location), )}
+    figure = {'data': [data],'layout' : go.Layout(title = '{}'.format(location), xaxis=dict(title='baseline'))}
 
     #figure = {'data': [data],'layout' : go.Layout(xaxis=dict(range=[min(x),max(x)]),
     #                                            yaxis=dict(range=[min(y),max(y)]),)}
